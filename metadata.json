@@ -1,0 +1,6 @@
+{
+  "name": "Groceries",
+  "description": "Smart Nutrition Guide with 2024 Nutri-Score calculation",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

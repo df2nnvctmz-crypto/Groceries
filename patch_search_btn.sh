@@ -1,0 +1,3 @@
+#!/bin/bash
+sed -i '183,188d' app/src/main/java/com/example/ui/search/SearchScreen.kt
+sed -i '182a \                    Button(\n                        onClick = onLoadMore,\n                        colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary.copy(alpha = 0.1f)),\n                        shape = RoundedCornerShape(16.dp),\n                        modifier = Modifier\n                            .fillMaxWidth()\n                            .padding(vertical = 16.dp)\n                            .height(56.dp)\n                    ) {\n                        Text("Load 20 more", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = GreenPrimary)\n                    }' app/src/main/java/com/example/ui/search/SearchScreen.kt
