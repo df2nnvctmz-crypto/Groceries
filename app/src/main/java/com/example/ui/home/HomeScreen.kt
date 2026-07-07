@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material.icons.outlined.Person
@@ -32,6 +34,7 @@ import com.example.ui.theme.BackgroundLight
 import com.example.ui.theme.GreenPrimary
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.AppTheme
 
 @Composable
 fun HomeScreen(
@@ -41,7 +44,12 @@ fun HomeScreen(
     onFoodClick: (FoodItem) -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
-    bills: List<com.example.data.BillEntity> = emptyList()
+    bills: List<com.example.data.BillEntity> = emptyList(),
+    favoriteFoodIds: Set<String> = emptySet(),
+    favoriteSwapIds: Set<String> = emptySet(),
+    allFoods: List<FoodItem> = emptyList(),
+    onToggleFavorite: (String) -> Unit = {},
+    onToggleSwapFavorite: (String, String) -> Unit = { _, _ -> }
 ) {
     var showNutrientGuide by remember { mutableStateOf(false) }
 
@@ -64,7 +72,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(BackgroundLight)
             .verticalScroll(rememberScrollState())
-            .padding(24.dp)
+            .padding(AppTheme.paddings.outerScreen)
     ) {
         // Header
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -75,19 +83,24 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Groceries",
-                    fontSize = 32.sp,
+                    fontSize = AppTheme.fontSizes.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = TextPrimary
                 )
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(AppTheme.iconSizes.largeIcon * 1.5f)
                         .clip(RoundedCornerShape(24.dp))
                         .background(Color.White)
                         .clickable { onProfileClick() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Outlined.Person, contentDescription = "Profile", tint = TextPrimary)
+                    Icon(
+                        Icons.Outlined.Person,
+                        contentDescription = "Profile",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(AppTheme.iconSizes.standardIcon)
+                    )
                 }
             }
             
@@ -100,7 +113,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Smart Nutrition Guide",
-                    fontSize = 16.sp,
+                    fontSize = AppTheme.fontSizes.bodyMedium,
                     color = TextSecondary
                 )
                 
@@ -118,20 +131,20 @@ fun HomeScreen(
                         imageVector = Icons.Filled.Whatshot,
                         contentDescription = "Calorie Target",
                         tint = GreenPrimary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(AppTheme.iconSizes.smallIcon)
                     )
                     val formatter = java.text.DecimalFormat("#,###")
                     val calText = formatter.format(userProfile.dailyCalorieTarget).replace(',', '.')
                     Text(
                         text = "$calText kcal",
-                        fontSize = 14.sp,
+                        fontSize = AppTheme.fontSizes.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = GreenPrimary
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             
             // Personalise Button (Bottom Left)
             val prefText = if (userProfile.dietaryPreference == com.example.domain.DietaryPreference.BALANCED) {
@@ -154,18 +167,18 @@ fun HomeScreen(
                     imageVector = Icons.Filled.Tune,
                     contentDescription = "Personalise",
                     tint = GreenPrimary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(AppTheme.iconSizes.smallIcon)
                 )
                 Text(
                     text = "$prefText • Recommended",
-                    fontSize = 14.sp,
+                    fontSize = AppTheme.fontSizes.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = GreenPrimary
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         // Health Points Card
         Card(
@@ -175,47 +188,52 @@ fun HomeScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(AppTheme.paddings.innerCard),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ScoreRing(score = overallScore, size = 80.dp, strokeWidth = 8.dp, textSize = 24.sp)
-                Spacer(modifier = Modifier.width(24.dp))
-                Column {
+                ScoreRing(
+                    score = overallScore,
+                    size = AppTheme.iconSizes.largeIcon * 2.5f,
+                    strokeWidth = AppTheme.iconSizes.smallIcon * 0.5f,
+                    textSize = AppTheme.fontSizes.titleMedium
+                )
+                Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "THIS WEEK",
                         color = overallScoreColor,
-                        fontSize = 10.sp,
+                        fontSize = AppTheme.fontSizes.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
                     Text(
                         text = "Health Points",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
+                        fontSize = AppTheme.fontSizes.titleMedium,
                         color = TextPrimary
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
                     Text(
                         text = "Scan a receipt to start earning points",
                         color = TextSecondary,
-                        fontSize = 12.sp
+                        fontSize = AppTheme.fontSizes.bodySmall
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer * 0.75f))
                     Button(
                         onClick = { },
                         colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Scan a receipt", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(AppTheme.iconSizes.smallIcon))
+                        Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
+                        Text("Scan a receipt", fontSize = AppTheme.fontSizes.bodySmall, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         // Today's Spotlight
         if (spotlightFood != null) {
@@ -226,37 +244,37 @@ fun HomeScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
+                Column(modifier = Modifier.padding(AppTheme.paddings.innerCard)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "TODAY'S SPOTLIGHT",
                                 color = GreenPrimary,
-                                fontSize = 10.sp,
+                                fontSize = AppTheme.fontSizes.labelSmall,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
                             Text(
                                 text = spotlightFood.name,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp,
+                                fontSize = AppTheme.fontSizes.titleMedium,
                                 color = TextPrimary
                             )
                         }
-                        ScoreRing(score = spotlightFood.healthScore, size = 64.dp)
+                        ScoreRing(score = spotlightFood.healthScore, size = AppTheme.iconSizes.largeIcon * 2)
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                     
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(BackgroundLight, RoundedCornerShape(16.dp))
-                            .padding(16.dp),
+                            .padding(AppTheme.paddings.innerCard),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         NutrientStat("${spotlightFood.kcal.toInt()} kcal", "Calories", isBold = true)
@@ -268,18 +286,228 @@ fun HomeScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        // My Favorites Section
+        val savedFoods = allFoods.filter { favoriteFoodIds.contains(it.id) }
+        val savedSwaps = favoriteSwapIds.mapNotNull { key ->
+            val parts = key.split("::")
+            if (parts.size == 2) {
+                val original = allFoods.find { it.id == parts[0] }
+                val alternative = allFoods.find { it.id == parts[1] }
+                if (original != null && alternative != null) {
+                    original to alternative
+                } else null
+            } else null
+        }
+
+        if (savedFoods.isNotEmpty() || savedSwaps.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+            
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = null,
+                    tint = Color(0xFFF43F5E), // Tailwind rose-500
+                    modifier = Modifier.size(AppTheme.iconSizes.standardIcon)
+                )
+                Text(
+                    text = "My Favorites",
+                    fontSize = AppTheme.fontSizes.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            }
+            
+            // Sub-Section A: Saved Foods
+            if (savedFoods.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+                Text(
+                    text = "SAVED FOODS",
+                    fontSize = AppTheme.fontSizes.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFA3A3A3),
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(savedFoods) { food ->
+                        val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+                        Card(
+                            onClick = { onFoodClick(food) },
+                            modifier = Modifier.width(140.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                Column(
+                                    modifier = Modifier.padding(AppTheme.paddings.innerCard),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        ScoreRing(score = food.healthScore, size = AppTheme.iconSizes.largeIcon * 2)
+                                    }
+                                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+                                    Text(
+                                        text = food.name,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = AppTheme.fontSizes.bodyMedium,
+                                        color = TextPrimary,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    )
+                                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
+                                    Text(
+                                        text = "${food.kcal.toInt()} kcal / 100g",
+                                        fontSize = AppTheme.fontSizes.bodySmall,
+                                        color = TextSecondary,
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    )
+                                }
+                                
+                                // Absolute-positioned filled Heart button in the top-right corner
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            onToggleFavorite(food.id)
+                                        },
+                                        modifier = Modifier.size(AppTheme.iconSizes.largeIcon)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Favorite,
+                                            contentDescription = "Unfavorite",
+                                            tint = Color(0xFFF43F5E),
+                                            modifier = Modifier.size(AppTheme.iconSizes.standardIcon * 0.75f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Sub-Section B: Saved Swaps
+            if (savedSwaps.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+                Text(
+                    text = "SAVED SWAPS",
+                    fontSize = AppTheme.fontSizes.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFA3A3A3),
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    savedSwaps.forEach { (original, alternative) ->
+                        val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+                        Card(
+                            onClick = { onFoodClick(alternative) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(AppTheme.paddings.innerCard)
+                                        .padding(end = AppTheme.iconSizes.largeIcon) // Prevent overlapping with Heart button!
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            text = original.name,
+                                            fontSize = AppTheme.fontSizes.bodySmall,
+                                            color = TextSecondary,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = null,
+                                            tint = TextSecondary,
+                                            modifier = Modifier.size(AppTheme.iconSizes.smallIcon)
+                                        )
+                                        Text(
+                                            text = alternative.name,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = AppTheme.fontSizes.bodyMedium,
+                                            color = Color(0xFF519D46),
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 2))
+                                    Text(
+                                        text = "Upgrade to ${alternative.name} and boost score by +${alternative.healthScore - original.healthScore}%",
+                                        fontSize = AppTheme.fontSizes.bodySmall,
+                                        color = TextSecondary
+                                    )
+                                }
+                                
+                                // Absolute-positioned filled Heart button in the top-right corner
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            onToggleSwapFavorite(original.id, alternative.id)
+                                        },
+                                        modifier = Modifier.size(AppTheme.iconSizes.largeIcon)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Favorite,
+                                            contentDescription = "Unfavorite",
+                                            tint = Color(0xFFF43F5E),
+                                            modifier = Modifier.size(AppTheme.iconSizes.standardIcon * 0.75f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer * 1.5f))
         
         // Recommended for You
         Text(
             text = "Recommended for You",
-            fontSize = 20.sp,
+            fontSize = AppTheme.fontSizes.titleMedium,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer)) {
             items(recommendedFoods) { food ->
                 RecommendedFoodCard(food = food, onClick = { onFoodClick(food) })
             }
@@ -295,13 +523,13 @@ fun NutrientStat(value: String, label: String, isBold: Boolean = false) {
         Text(
             text = value,
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Medium,
-            fontSize = 14.sp,
+            fontSize = AppTheme.fontSizes.bodyMedium,
             color = TextPrimary
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
         Text(
             text = label,
-            fontSize = 10.sp,
+            fontSize = AppTheme.fontSizes.labelSmall,
             color = TextSecondary
         )
     }
@@ -317,22 +545,22 @@ fun RecommendedFoodCard(food: FoodItem, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(AppTheme.paddings.innerCard),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ScoreRing(score = food.healthScore, size = 64.dp)
-            Spacer(modifier = Modifier.height(16.dp))
+            ScoreRing(score = food.healthScore, size = AppTheme.iconSizes.largeIcon * 2)
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             Text(
                 text = food.name,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = AppTheme.fontSizes.bodyMedium,
                 color = TextPrimary,
                 maxLines = 1
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 4))
             Text(
                 text = "${food.kcal.toInt()} kcal / 100g",
-                fontSize = 10.sp,
+                fontSize = AppTheme.fontSizes.labelSmall,
                 color = TextSecondary
             )
         }
@@ -360,7 +588,7 @@ fun DailyNutrientGuideDialog(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp)
+                    .padding(AppTheme.paddings.outerScreen)
             ) {
                 // Header Row
                 Row(
@@ -374,7 +602,7 @@ fun DailyNutrientGuideDialog(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(AppTheme.iconSizes.largeIcon * 1.25f)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color(0xFFEAF2EC)),
                             contentAlignment = Alignment.Center
@@ -383,19 +611,19 @@ fun DailyNutrientGuideDialog(
                                 imageVector = Icons.Filled.Whatshot,
                                 contentDescription = null,
                                 tint = GreenPrimary,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(AppTheme.iconSizes.standardIcon * 0.85f)
                             )
                         }
                         Column {
                             Text(
                                 text = "Daily Nutrient Guide",
-                                fontSize = 18.sp,
+                                fontSize = AppTheme.fontSizes.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
                             Text(
                                 text = "BASED ON YOUR PROFILE",
-                                fontSize = 10.sp,
+                                fontSize = AppTheme.fontSizes.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary,
                                 letterSpacing = 0.5.sp
@@ -406,7 +634,7 @@ fun DailyNutrientGuideDialog(
                     // Close Button
                     Box(
                         modifier = Modifier
-                            .size(32.dp)
+                            .size(AppTheme.iconSizes.largeIcon)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color(0xFFF3F4F6))
                             .clickable { onDismiss() },
@@ -416,12 +644,12 @@ fun DailyNutrientGuideDialog(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Close",
                             tint = TextPrimary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(AppTheme.iconSizes.smallIcon)
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                 
                 // Scrollable Content
                 Box(
@@ -441,9 +669,9 @@ fun DailyNutrientGuideDialog(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(Color(0xFFF4F7F5))
-                                .padding(16.dp)
+                                .padding(AppTheme.paddings.innerCard)
                         ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -451,7 +679,7 @@ fun DailyNutrientGuideDialog(
                                 ) {
                                     Text(
                                         text = "Daily Budget:",
-                                        fontSize = 14.sp,
+                                        fontSize = AppTheme.fontSizes.bodyMedium,
                                         color = TextPrimary,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -459,7 +687,7 @@ fun DailyNutrientGuideDialog(
                                     val calText = formatter.format(profile.dailyCalorieTarget).replace(',', '.')
                                     Text(
                                         text = "$calText kcal",
-                                        fontSize = 16.sp,
+                                        fontSize = AppTheme.fontSizes.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = TextPrimary
                                     )
@@ -471,7 +699,7 @@ fun DailyNutrientGuideDialog(
                                 
                                 Text(
                                     text = "Optimised for: $sexText, ${profile.age} yrs, ${profile.weight}kg, ${profile.height}cm ($activityText) with a \"$prefText\" dietary preference.",
-                                    fontSize = 12.sp,
+                                    fontSize = AppTheme.fontSizes.bodySmall,
                                     color = TextSecondary,
                                     lineHeight = 16.sp
                                 )
@@ -482,7 +710,7 @@ fun DailyNutrientGuideDialog(
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
                                 text = "MACRONUTRIENT SPLIT",
-                                fontSize = 10.sp,
+                                fontSize = AppTheme.fontSizes.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary,
                                 letterSpacing = 0.5.sp
@@ -571,20 +799,20 @@ fun DailyNutrientGuideDialog(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(8.dp)
+                                            .size(AppTheme.iconSizes.smallIcon / 2)
                                             .clip(RoundedCornerShape(4.dp))
                                             .background(Color(0xFF1ABC9C))
                                     )
                                     Text(
                                         text = "Dietary Fiber",
-                                        fontSize = 14.sp,
+                                        fontSize = AppTheme.fontSizes.bodyMedium,
                                         fontWeight = FontWeight.Medium,
                                         color = TextPrimary
                                     )
                                 }
                                 Text(
                                     text = "28g",
-                                    fontSize = 14.sp,
+                                    fontSize = AppTheme.fontSizes.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
@@ -595,7 +823,7 @@ fun DailyNutrientGuideDialog(
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
                                 text = "RECOMMENDED MICRONUTRIENTS",
-                                fontSize = 10.sp,
+                                fontSize = AppTheme.fontSizes.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary,
                                 letterSpacing = 0.5.sp
@@ -633,11 +861,11 @@ fun DailyNutrientGuideDialog(
                             MicroRow(label = "Chloride", value = "2.3 g", color = Color(0xFF38598B))
                         }
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer * 1.5f))
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                 
                 // Got it! Button
                 Button(
@@ -650,7 +878,7 @@ fun DailyNutrientGuideDialog(
                 ) {
                     Text(
                         text = "Got it!",
-                        fontSize = 16.sp,
+                        fontSize = AppTheme.fontSizes.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -668,7 +896,7 @@ fun MacroRow(
     color: Color,
     progress: Float
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 4)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -676,31 +904,31 @@ fun MacroRow(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
+                        .size(AppTheme.iconSizes.smallIcon / 2)
                         .clip(RoundedCornerShape(4.dp))
                         .background(color)
                 )
                 Text(
                     text = label,
-                    fontSize = 14.sp,
+                    fontSize = AppTheme.fontSizes.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 4)) {
                 Text(
                     text = "${grams}g",
-                    fontSize = 14.sp,
+                    fontSize = AppTheme.fontSizes.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Text(
                     text = "($percentage%)",
-                    fontSize = 12.sp,
+                    fontSize = AppTheme.fontSizes.bodySmall,
                     color = TextSecondary
                 )
             }
@@ -728,8 +956,8 @@ fun SubMacroRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(start = AppTheme.paddings.outerScreen),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 4)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -738,31 +966,31 @@ fun SubMacroRow(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(4.dp)
+                        .size(AppTheme.iconSizes.smallIcon / 4)
                         .clip(RoundedCornerShape(2.dp))
                         .background(color.copy(alpha = 0.8f))
                 )
                 Text(
                     text = label,
-                    fontSize = 12.sp,
+                    fontSize = AppTheme.fontSizes.bodySmall,
                     fontWeight = FontWeight.Medium,
                     color = TextSecondary
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 4)) {
                 Text(
                     text = "${grams}g",
-                    fontSize = 12.sp,
+                    fontSize = AppTheme.fontSizes.bodySmall,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Text(
                     text = "($percentage%)",
-                    fontSize = 10.sp,
+                    fontSize = AppTheme.fontSizes.labelSmall,
                     color = TextSecondary
                 )
             }
@@ -785,7 +1013,7 @@ fun MicroRow(
     value: String,
     color: Color
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 4)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -793,24 +1021,24 @@ fun MicroRow(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(6.dp)
+                        .size(AppTheme.iconSizes.smallIcon * 0.35f)
                         .clip(RoundedCornerShape(3.dp))
                         .background(color)
                 )
                 Text(
                     text = label,
-                    fontSize = 13.sp,
+                    fontSize = AppTheme.fontSizes.bodySmall,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary
                 )
             }
             Text(
                 text = value,
-                fontSize = 13.sp,
+                fontSize = AppTheme.fontSizes.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )

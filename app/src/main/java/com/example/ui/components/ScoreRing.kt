@@ -28,13 +28,15 @@ import com.example.ui.theme.ScoreRingBackground
 import com.example.ui.theme.ScoreRingGreen
 import com.example.ui.theme.ScoreRingRed
 
+import com.example.ui.theme.AppTheme
+
 @Composable
 fun ScoreRing(
     score: Int,
     modifier: Modifier = Modifier,
-    size: Dp = 64.dp,
-    strokeWidth: Dp = 6.dp,
-    textSize: TextUnit = 24.sp
+    size: Dp = AppTheme.iconSizes.largeIcon * 2,
+    strokeWidth: Dp = AppTheme.iconSizes.smallIcon * 0.4f,
+    textSize: TextUnit = AppTheme.fontSizes.titleMedium
 ) {
     var animationPlayed by remember { mutableStateOf(false) }
     val currentPercentage = animateFloatAsState(

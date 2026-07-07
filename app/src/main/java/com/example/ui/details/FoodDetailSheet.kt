@@ -9,7 +9,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.draw.scale
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +37,9 @@ fun FoodDetailSheet(
     food: FoodItem,
     swapFood: FoodItem?,
     onDismiss: () -> Unit,
-    onSwapClick: (FoodItem) -> Unit
+    onSwapClick: (FoodItem) -> Unit,
+    isFavorite: Boolean = false,
+    onFavoriteToggle: () -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -52,11 +58,16 @@ fun FoodDetailSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = { /* Todo: Favorite */ }) {
+                val haptic = LocalHapticFeedback.current
+                IconButton(onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onFavoriteToggle()
+                }) {
                     Icon(
-                        imageVector = Icons.Outlined.FavoriteBorder,
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = TextSecondary
+                        tint = if (isFavorite) Color(0xFFF43F5E) else TextSecondary,
+                        modifier = Modifier.scale(if (isFavorite) 1.2f else 1.0f)
                     )
                 }
                 IconButton(onClick = onDismiss) {

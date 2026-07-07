@@ -6,9 +6,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,34 +22,40 @@ import com.example.ui.theme.BackgroundLight
 import com.example.ui.theme.GreenPrimary
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.AppTheme
 
 @Composable
 fun SwapsScreen(
     badFoods: List<FoodItem>,
     getSwapsFor: (FoodItem) -> List<FoodItem>,
     onFoodClick: (FoodItem) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    favoriteFoodIds: Set<String> = emptySet(),
+    favoriteSwapIds: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {},
+    onToggleSwapFavorite: (String, String) -> Unit = { _, _ -> }
 ) {
+    var favoritesOnly by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(BackgroundLight)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = AppTheme.paddings.outerScreen)
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         Text(
             text = "Smarter Swaps",
-            fontSize = 32.sp,
+            fontSize = AppTheme.fontSizes.titleLarge,
             fontWeight = FontWeight.ExtraBold,
             color = TextPrimary
         )
         Text(
             text = "Tap any card to compare nutrients",
-            fontSize = 14.sp,
+            fontSize = AppTheme.fontSizes.bodyMedium,
             color = TextSecondary
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -57,18 +64,26 @@ fun SwapsScreen(
         ) {
             Text(
                 text = "Recommended for You",
-                fontSize = 20.sp,
+                fontSize = AppTheme.fontSizes.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    tint = TextSecondary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+                IconButton(
+                    onClick = { favoritesOnly = !favoritesOnly },
+                    modifier = Modifier.size(AppTheme.iconSizes.largeIcon * 1.125f)
+                ) {
+                    Icon(
+                        imageVector = if (favoritesOnly) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorites Only",
+                        tint = if (favoritesOnly) Color(0xFFF43F5E) else TextSecondary,
+                        modifier = Modifier.size(AppTheme.iconSizes.standardIcon * 0.85f)
+                    )
+                }
+                Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 4))
                 Box(
                     modifier = Modifier
                         .background(GreenPrimary.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
@@ -77,27 +92,39 @@ fun SwapsScreen(
                     Text(
                         text = "Balanced",
                         color = GreenPrimary,
-                        fontSize = 12.sp,
+                        fontSize = AppTheme.fontSizes.bodySmall,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         LazyColumn(
             contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer)
         ) {
             items(badFoods) { badFood ->
                 val swaps = getSwapsFor(badFood)
                 if (swaps.isNotEmpty()) {
-                    SwapListItem(
-                        original = badFood, 
-                        swap = swaps.first(),
-                        onClick = { onFoodClick(swaps.first()) }
-                    )
+                    val swap = swaps.first()
+                    val swapKey = "${badFood.id}::${swap.id}"
+                    val isFavoriteSwap = favoriteSwapIds.contains(swapKey)
+                    val isBadFoodFavorite = favoriteFoodIds.contains(badFood.id)
+                    val isSwapFoodFavorite = favoriteFoodIds.contains(swap.id)
+                    
+                    val passesFavoritesFilter = !favoritesOnly || (isFavoriteSwap || isBadFoodFavorite || isSwapFoodFavorite)
+                    
+                    if (passesFavoritesFilter) {
+                        SwapListItem(
+                            original = badFood, 
+                            swap = swap,
+                            onClick = { onFoodClick(swap) },
+                            isFavorite = isFavoriteSwap,
+                            onFavoriteToggle = { onToggleSwapFavorite(badFood.id, swap.id) }
+                        )
+                    }
                 }
             }
         }

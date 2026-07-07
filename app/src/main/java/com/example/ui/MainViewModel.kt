@@ -1,5 +1,7 @@
 package com.example.ui
 
+import android.content.Context
+
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -29,11 +31,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val scanner = ReceiptScanner(repository)
     private val db = AppDatabase.getDatabase(application)
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    private val prefs = application.getSharedPreferences("food_favorites", Context.MODE_PRIVATE)
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        val savedFoodIds = prefs.getStringSet("favorite_food_ids", emptySet()) ?: emptySet()
+        val savedSwapIds = prefs.getStringSet("favorite_swap_ids", emptySet()) ?: emptySet()
+        _uiState.update { it.copy(favoriteFoodIds = savedFoodIds, favoriteSwapIds = savedSwapIds) }
+
         viewModelScope.launch {
             val foods = repository.loadFoods()
             _uiState.update { it.copy(allFoods = foods, displayedFoods = foods) }
@@ -148,9 +155,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 state.favoriteFoodIds + foodId
             }
+            prefs.edit().putStringSet("favorite_food_ids", newFavorites).apply()
             state.copy(favoriteFoodIds = newFavorites)
         }
         applyFilters() // In case favoritesOnly is true
+    }
+
+    fun toggleSwapFavorite(fromId: String, toId: String) {
+        val swapId = "$fromId::$toId"
+        _uiState.update { state ->
+            val newFavorites = if (state.favoriteSwapIds.contains(swapId)) {
+                state.favoriteSwapIds - swapId
+            } else {
+                state.favoriteSwapIds + swapId
+            }
+            prefs.edit().putStringSet("favorite_swap_ids", newFavorites).apply()
+            state.copy(favoriteSwapIds = newFavorites)
+        }
     }
 
     private fun getRankedFoods(foods: List<FoodItem>): List<FoodItem> {
@@ -283,6 +304,7 @@ data class UiState(
     val userProfile: UserProfile = UserProfile(),
     val loadedFoodsCount: Int = 20,
     val favoriteFoodIds: Set<String> = emptySet(),
+    val favoriteSwapIds: Set<String> = emptySet(),
     val isScanningReceipt: Boolean = false,
     val scannedItems: List<ScannedItem> = emptyList(),
     val bills: List<com.example.data.BillEntity> = emptyList()

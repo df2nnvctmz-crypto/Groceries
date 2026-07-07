@@ -31,6 +31,7 @@ import com.example.ui.theme.BackgroundLight
 import com.example.ui.theme.GreenPrimary
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,9 @@ fun SearchScreen(
     onLoadMore: () -> Unit,
     allCategories: List<String>,
     allSubcategories: List<String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    favoriteFoodIds: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {}
 ) {
     var showFilters by remember { mutableStateOf(false) }
 
@@ -53,22 +56,22 @@ fun SearchScreen(
         modifier = modifier
             .fillMaxSize()
             .background(BackgroundLight)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = AppTheme.paddings.outerScreen)
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         Text(
             text = "Search",
-            fontSize = 32.sp,
+            fontSize = AppTheme.fontSizes.titleLarge,
             fontWeight = FontWeight.ExtraBold,
             color = TextPrimary
         )
         Text(
             text = "Filter foods by keyword, sub-category, or name.",
-            fontSize = 14.sp,
+            fontSize = AppTheme.fontSizes.bodyMedium,
             color = TextSecondary
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(
@@ -90,11 +93,11 @@ fun SearchScreen(
                 singleLine = true
             )
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
             
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(AppTheme.iconSizes.largeIcon * 1.75f)
                     .background(if (showFilters) GreenPrimary else Color(0xFFEFEFEF), RoundedCornerShape(16.dp))
                     .clickable { showFilters = !showFilters },
                 contentAlignment = Alignment.Center
@@ -116,19 +119,19 @@ fun SearchScreen(
             )
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         Text(
             text = "QUICK FILTER",
-            fontSize = 12.sp,
+            fontSize = AppTheme.fontSizes.labelSmall,
             fontWeight = FontWeight.Bold,
             color = TextSecondary,
             letterSpacing = 1.sp
         )
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)) {
             items(allCategories) { cat ->
                 val isSelected = searchFilter.category == cat
                 FilterChip(
@@ -155,28 +158,33 @@ fun SearchScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         Text(
             text = if (searchQuery.isEmpty() && searchFilter.category == "All" && searchFilter.nutriScores.isEmpty() && searchFilter.maxCalories >= 1000f) "POPULAR FOODS" else "SEARCH RESULTS",
-            fontSize = 12.sp,
+            fontSize = AppTheme.fontSizes.labelSmall,
             fontWeight = FontWeight.Bold,
             color = TextSecondary,
             letterSpacing = 1.sp
         )
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
         
         val listState = rememberLazyListState()
         
         LazyColumn(
             state = listState,
             contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer)
         ) {
             val foodsToShow = searchResults.take(loadedFoodsCount)
             items(foodsToShow) { food ->
-                FoodListItem(item = food, onClick = { onFoodClick(food) })
+                FoodListItem(
+                    item = food,
+                    onClick = { onFoodClick(food) },
+                    isFavorite = favoriteFoodIds.contains(food.id),
+                    onFavoriteToggle = { onToggleFavorite(food.id) }
+                )
             }
             if (foodsToShow.size < searchResults.size) {
                 item {
@@ -186,10 +194,10 @@ fun SearchScreen(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                            .padding(vertical = AppTheme.paddings.innerCard)
                             .height(56.dp)
                     ) {
-                        Text("Load 20 more", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = GreenPrimary)
+                        Text("Load 20 more", fontSize = AppTheme.fontSizes.bodyMedium, fontWeight = FontWeight.Bold, color = GreenPrimary)
                     }
                 }
             }
@@ -208,19 +216,19 @@ fun FilterPanel(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp),
+            .padding(top = AppTheme.paddings.elementSpacer),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(AppTheme.paddings.innerCard)) {
             // Favorites Only
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Favorites Only", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Text("Favorites Only", fontWeight = FontWeight.SemiBold, fontSize = AppTheme.fontSizes.bodyMedium)
                 Switch(
                     checked = searchFilter.favoritesOnly,
                     onCheckedChange = { onFilterChange(searchFilter.copy(favoritesOnly = it)) },
@@ -228,12 +236,12 @@ fun FilterPanel(
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer)) {
                 // Category Dropdown
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("CATEGORY", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
+                    Text("CATEGORY", fontSize = AppTheme.fontSizes.labelSmall, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     var catExpanded by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(expanded = catExpanded, onExpandedChange = { catExpanded = it }) {
@@ -262,7 +270,7 @@ fun FilterPanel(
                 
                 // Subcategory Dropdown
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("SUBCATEGORY", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
+                    Text("SUBCATEGORY", fontSize = AppTheme.fontSizes.labelSmall, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     var subcatExpanded by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(expanded = subcatExpanded, onExpandedChange = { subcatExpanded = it }) {
@@ -290,16 +298,16 @@ fun FilterPanel(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             
-            Text("NUTRI SCORE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("NUTRI SCORE", fontSize = AppTheme.fontSizes.labelSmall, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer / 2))
+            Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.paddings.elementSpacer / 2)) {
                 listOf("A", "B", "C", "D", "E").forEach { score ->
                     val isSelected = searchFilter.nutriScores.contains(score)
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(AppTheme.iconSizes.largeIcon * 1.125f)
                             .clip(CircleShape)
                             .background(if (isSelected) GreenPrimary else Color(0xFFF5F5F5))
                             .clickable {
@@ -313,11 +321,11 @@ fun FilterPanel(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("MAX CALORIES (/ 100g)", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
-                Text("${searchFilter.maxCalories.toInt()} kcal", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GreenPrimary)
+                Text("MAX CALORIES (/ 100g)", fontSize = AppTheme.fontSizes.labelSmall, fontWeight = FontWeight.Bold, color = TextSecondary, letterSpacing = 1.sp)
+                Text("${searchFilter.maxCalories.toInt()} kcal", fontSize = AppTheme.fontSizes.bodySmall, fontWeight = FontWeight.Bold, color = GreenPrimary)
             }
             
             Slider(
@@ -331,9 +339,9 @@ fun FilterPanel(
                 )
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("0", fontSize = 10.sp, color = TextSecondary)
-                Text("500", fontSize = 10.sp, color = TextSecondary)
-                Text("1000+", fontSize = 10.sp, color = TextSecondary)
+                Text("0", fontSize = AppTheme.fontSizes.labelSmall, color = TextSecondary)
+                Text("500", fontSize = AppTheme.fontSizes.labelSmall, color = TextSecondary)
+                Text("1000+", fontSize = AppTheme.fontSizes.labelSmall, color = TextSecondary)
             }
         }
     }

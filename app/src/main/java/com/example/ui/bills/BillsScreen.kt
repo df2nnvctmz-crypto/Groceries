@@ -31,6 +31,7 @@ import com.example.ui.theme.BackgroundLight
 import com.example.ui.theme.GreenPrimary
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.AppTheme
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -59,24 +60,24 @@ fun BillsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = AppTheme.paddings.outerScreen),
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                 Text(
                     text = "Bills",
-                    fontSize = 32.sp,
+                    fontSize = AppTheme.fontSizes.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = TextPrimary
                 )
                 Text(
                     text = "Track your receipts and health points",
-                    fontSize = 14.sp,
+                    fontSize = AppTheme.fontSizes.bodyMedium,
                     color = TextSecondary
                 )
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -87,20 +88,25 @@ fun BillsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(32.dp),
+                            .padding(AppTheme.paddings.innerCard * 1.5f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ScoreRing(score = overallScore, size = 120.dp, strokeWidth = 12.dp, textSize = 36.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
+                        ScoreRing(
+                            score = overallScore,
+                            size = AppTheme.iconSizes.largeIcon * 3.75f,
+                            strokeWidth = AppTheme.iconSizes.largeIcon * 0.375f,
+                            textSize = AppTheme.fontSizes.titleLarge * 1.125f
+                        )
+                        Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                         Text(
                             text = "Overall health points",
                             color = overallScoreColor,
-                            fontSize = 14.sp
+                            fontSize = AppTheme.fontSizes.bodyMedium
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
                 
                 Button(
                     onClick = onScanClick,
@@ -111,21 +117,21 @@ fun BillsScreen(
                         .height(56.dp)
                 ) {
                     Icon(Icons.Filled.CameraAlt, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Scan Receipt", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
+                    Text("Scan Receipt", fontSize = AppTheme.fontSizes.bodyMedium, fontWeight = FontWeight.Bold)
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer * 1.5f))
                 
                 Text(
                     text = "THIS WEEK",
-                    fontSize = 12.sp,
+                    fontSize = AppTheme.fontSizes.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = GreenPrimary,
                     letterSpacing = 1.sp
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             }
             
             items(bills) { bill ->
@@ -135,7 +141,7 @@ fun BillsScreen(
                     onDelete = { onDeleteBill(bill) },
                     onFoodClick = onFoodClick
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppTheme.paddings.elementSpacer))
             }
         }
     }
@@ -168,7 +174,7 @@ fun BillItemCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = !expanded }
-                    .padding(16.dp),
+                    .padding(AppTheme.paddings.innerCard),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -185,20 +191,20 @@ fun BillItemCard(
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer))
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = bill.storeName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = AppTheme.fontSizes.bodyMedium,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "$dateStr • ${bill.totalItems} items",
                         color = GreenPrimary,
-                        fontSize = 12.sp
+                        fontSize = AppTheme.fontSizes.bodySmall
                     )
                 }
                 
@@ -211,22 +217,22 @@ fun BillItemCard(
                         text = "${bill.score}%",
                         color = billColor,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = AppTheme.fontSizes.bodySmall
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
                 
-                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(AppTheme.iconSizes.standardIcon)) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = "Delete",
                         tint = TextSecondary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(AppTheme.iconSizes.standardIcon * 0.85f)
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
                 
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -239,7 +245,7 @@ fun BillItemCard(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                        .padding(start = AppTheme.paddings.innerCard, end = AppTheme.paddings.innerCard, bottom = AppTheme.paddings.innerCard)
                 ) {
                     val parsedItems = remember(bill.itemsJson) {
                         val result = mutableListOf<Pair<String, FoodItem?>>()
@@ -263,22 +269,37 @@ fun BillItemCard(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .clickable { onFoodClick(food) },
+                                    .padding(bottom = AppTheme.paddings.elementSpacer / 2),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
                                         modifier = Modifier
-                                            .size(36.dp)
-                                            .background(
+                                            .fillMaxWidth()
+                                            .clickable { onFoodClick(food) }
+                                            .padding(AppTheme.paddings.innerCard * 0.75f),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(
+                                                    color = when (food.nutriGrade) {
+                                                        "A" -> Color(0xFF008b4c)
+                                                        "B" -> Color(0xFF80c142)
+                                                        "C" -> Color(0xFFfeca0b)
+                                                        "D" -> Color(0xFFf08100)
+                                                        "E" -> Color(0xFFe63e11)
+                                                        else -> Color.Gray
+                                                    }.copy(alpha = 0.1f),
+                                                    shape = RoundedCornerShape(18.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = food.healthScore.toString(),
                                                 color = when (food.nutriGrade) {
                                                     "A" -> Color(0xFF008b4c)
                                                     "B" -> Color(0xFF80c142)
@@ -286,70 +307,76 @@ fun BillItemCard(
                                                     "D" -> Color(0xFFf08100)
                                                     "E" -> Color(0xFFe63e11)
                                                     else -> Color.Gray
-                                                }.copy(alpha = 0.1f),
-                                                shape = RoundedCornerShape(18.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = food.healthScore.toString(),
-                                            color = when (food.nutriGrade) {
-                                                "A" -> Color(0xFF008b4c)
-                                                "B" -> Color(0xFF80c142)
-                                                "C" -> Color(0xFFfeca0b)
-                                                "D" -> Color(0xFFf08100)
-                                                "E" -> Color(0xFFe63e11)
-                                                else -> Color.Gray
-                                            },
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-                                    
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = food.name,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
-                                            color = TextPrimary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = text,
-                                            fontSize = 12.sp,
-                                            color = GreenPrimary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
+                                                },
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = AppTheme.fontSizes.bodySmall
+                                            )
+                                        }
+                                        
+                                        Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer))
+                                        
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = food.name,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = AppTheme.fontSizes.bodyMedium,
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                text = text,
+                                                fontSize = AppTheme.fontSizes.bodySmall,
+                                                color = GreenPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                        
+                                        Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = null,
+                                            tint = TextSecondary,
+                                            modifier = Modifier.size(AppTheme.iconSizes.smallIcon)
                                         )
                                     }
                                     
                                     if (food.swapSuggestionId != null) {
                                         val swapFood = allFoods.find { it.id == food.swapSuggestionId }
                                         if (swapFood != null) {
-                                            Spacer(modifier = Modifier.width(8.dp))
                                             Box(
                                                 modifier = Modifier
-                                                    .background(Color(0xFFE8F5E9), RoundedCornerShape(8.dp))
+                                                    .fillMaxWidth()
                                                     .clickable { onFoodClick(swapFood) }
-                                                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                                                    .background(Color(0xFFE8F5E9))
+                                                    .padding(horizontal = AppTheme.paddings.innerCard, vertical = AppTheme.paddings.innerCard * 0.5f)
                                             ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Column(horizontalAlignment = Alignment.End) {
-                                                        Text("SWAP", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = GreenPrimary)
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        modifier = Modifier.weight(1f)
+                                                    ) {
+                                                        Text(
+                                                            text = "SWAP: ",
+                                                            fontSize = AppTheme.fontSizes.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = GreenPrimary
+                                                        )
                                                         Text(
                                                             text = swapFood.name,
-                                                            fontSize = 10.sp,
+                                                            fontSize = AppTheme.fontSizes.labelSmall,
                                                             fontWeight = FontWeight.Bold,
                                                             color = TextPrimary,
                                                             maxLines = 1,
-                                                            modifier = Modifier.widthIn(max = 80.dp),
                                                             overflow = TextOverflow.Ellipsis
                                                         )
                                                     }
-                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Spacer(modifier = Modifier.width(AppTheme.paddings.elementSpacer / 2))
                                                     Box(
                                                         modifier = Modifier
                                                             .background(Color.White, RoundedCornerShape(4.dp))
@@ -357,7 +384,7 @@ fun BillItemCard(
                                                     ) {
                                                         Text(
                                                             text = swapFood.healthScore.toString(),
-                                                            fontSize = 10.sp,
+                                                            fontSize = AppTheme.fontSizes.labelSmall,
                                                             fontWeight = FontWeight.Bold,
                                                             color = GreenPrimary
                                                         )
@@ -366,14 +393,6 @@ fun BillItemCard(
                                             }
                                         }
                                     }
-                                    
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowForward,
-                                        contentDescription = null,
-                                        tint = TextSecondary,
-                                        modifier = Modifier.size(16.dp)
-                                    )
                                 }
                             }
                         }

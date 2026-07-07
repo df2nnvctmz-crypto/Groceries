@@ -82,7 +82,9 @@ fun MainApp() {
             food = food,
             swapFood = swapFood,
             onDismiss = { viewModel.selectFood(null) },
-            onSwapClick = { viewModel.selectFood(it) }
+            onSwapClick = { viewModel.selectFood(it) },
+            isFavorite = uiState.favoriteFoodIds.contains(food.id),
+            onFavoriteToggle = { viewModel.toggleFavorite(food.id) }
         )
     }
 
@@ -143,7 +145,12 @@ fun MainApp() {
                     recommendedFoods = viewModel.getRecommendedFoods(),
                     onFoodClick = { viewModel.selectFood(it) },
                     onProfileClick = { navController.navigate(Screen.Profile.route) },
-                    bills = uiState.bills
+                    bills = uiState.bills,
+                    favoriteFoodIds = uiState.favoriteFoodIds,
+                    favoriteSwapIds = uiState.favoriteSwapIds,
+                    allFoods = uiState.allFoods,
+                    onToggleFavorite = { viewModel.toggleFavorite(it) },
+                    onToggleSwapFavorite = { from, to -> viewModel.toggleSwapFavorite(from, to) }
                 )
             }
             composable(Screen.Search.route) {
@@ -157,14 +164,20 @@ fun MainApp() {
                     onFoodClick = { viewModel.selectFood(it) },
                     onLoadMore = { viewModel.loadMoreFoods() },
                     allCategories = uiState.allFoods.groupingBy { it.category }.eachCount().entries.sortedByDescending { it.value }.take(7).map { it.key }.sorted(),
-                    allSubcategories = uiState.allFoods.filter { it.subcategory.isNotBlank() }.groupingBy { it.subcategory }.eachCount().entries.sortedByDescending { it.value }.take(7).map { it.key }.sorted()
+                    allSubcategories = uiState.allFoods.filter { it.subcategory.isNotBlank() }.groupingBy { it.subcategory }.eachCount().entries.sortedByDescending { it.value }.take(7).map { it.key }.sorted(),
+                    favoriteFoodIds = uiState.favoriteFoodIds,
+                    onToggleFavorite = { viewModel.toggleFavorite(it) }
                 )
             }
             composable(Screen.Swaps.route) {
                 SwapsScreen(
                     badFoods = uiState.allFoods.filter { it.nutriGrade == "D" || it.nutriGrade == "E" },
                     getSwapsFor = { viewModel.getSwapsFor(it) },
-                    onFoodClick = { viewModel.selectFood(it) }
+                    onFoodClick = { viewModel.selectFood(it) },
+                    favoriteFoodIds = uiState.favoriteFoodIds,
+                    favoriteSwapIds = uiState.favoriteSwapIds,
+                    onToggleFavorite = { viewModel.toggleFavorite(it) },
+                    onToggleSwapFavorite = { from, to -> viewModel.toggleSwapFavorite(from, to) }
                 )
             }
             composable(Screen.Bills.route) {
